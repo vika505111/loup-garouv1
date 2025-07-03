@@ -42,21 +42,27 @@
         }
 
         Object.entries(data).forEach(([id, player]) => {
-          const card = document.createElement("div");
-          card.className = "player-card";
-          card.innerHTML = `
-            <h3>${player.name}</h3>
-            <p>الدور: <strong>${player.role || "غير معروف"}</strong></p>
-            <p>مقتول؟ <strong>${player.isDead ? "نعم" : "لا"}</strong></p>
-            <p>مستذئب؟ <strong>${player.isInfected ? "نعم" : "لا"}</strong></p>
-            <div class="actions">
-              <button onclick="killPlayer('${id}')">قتل</button>
-              <button onclick="infectPlayer('${id}')">تحويل</button>
-            </div>
-          `;
-          playerList.appendChild(card);
-        });
-      });
+  const card = document.createElement("div");
+  card.className = "player-card";
+
+  const isDead = player.isDead;
+
+  card.style.backgroundColor = isDead ? "#444" : "#111";
+  card.style.opacity = isDead ? "0.6" : "1";
+  card.style.pointerEvents = isDead ? "none" : "auto";
+
+  card.innerHTML = `
+    <h3>${player.name}</h3>
+    <p>الدور: <strong>${player.role || "غير معروف"}</strong></p>
+    <p>مقتول؟ <strong>${isDead ? "نعم" : "لا"}</strong></p>
+    <p>مستذئب؟ <strong>${player.isInfected ? "نعم" : "لا"}</strong></p>
+    <div class="actions">
+      <button onclick="killPlayer('${id}')">قتل</button>
+      <button onclick="infectPlayer('${id}')">تحويل</button>
+    </div>
+  `;
+  playerList.appendChild(card);
+});
 
       window.killPlayer = (id) => {
         update(ref(db, `rooms/${roomCode}/players/${id}`), { isDead: true });
