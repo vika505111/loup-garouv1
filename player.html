@@ -92,10 +92,22 @@
       color: crimson;
     }
 
-    #infected-msg, #dead-msg {
+    #infected-msg {
       margin-top: 15px;
       color: #e74c3c;
       font-weight: bold;
+    }
+
+    #skull {
+      font-size: 80px;
+      color: #e74c3c;
+      margin-bottom: 10px;
+    }
+
+    #death-text {
+      color: #e74c3c;
+      font-weight: bold;
+      font-size: 18px;
     }
   </style>
 </head>
@@ -103,26 +115,18 @@
   <div class="container">
     <h2>Loup-Garou</h2>
 
-    <!-- نموذج الانضمام -->
     <div id="join-form">
       <input type="text" id="player-name" placeholder="اسمك">
       <input type="text" id="room-code" placeholder="رمز الغرفة">
       <button id="join-btn">انضم</button>
     </div>
-<!-- حالة الانتظار -->
-<div id="status" class="hidden" style="color: white;">
-  في انتظار بدء اللعبة...
-  <button id="leave-btn" class="danger">مغادرة</button>
-</div>
 
-    <!-- عرض الدور -->
-    <div id="role-box" class="hidden">
-      <h3>دورك:</h3>
-      <div id="my-role">-</div>
-      <div id="infected-msg" class="hidden">لقد أصبحت مستذئبًا!</div>
-      <div id="dead-msg" class="hidden">لقد تم قتلك!</div>
-      <button id="suicide-btn" class="danger">انتحار</button>
+    <div id="status" class="hidden" style="color: white;">
+      في انتظار بدء اللعبة...
+      <button id="leave-btn" class="danger">مغادرة</button>
     </div>
+
+    <div id="role-box" class="hidden"></div>
   </div>
 
   <script type="module">
@@ -150,10 +154,6 @@
     const joinForm = document.getElementById("join-form");
     const statusDiv = document.getElementById("status");
     const roleBox = document.getElementById("role-box");
-    const myRoleDiv = document.getElementById("my-role");
-    const infectedMsg = document.getElementById("infected-msg");
-    const deadMsg = document.getElementById("dead-msg");
-    const suicideBtn = document.getElementById("suicide-btn");
     const leaveBtn = document.getElementById("leave-btn");
 
     let playerId = localStorage.getItem("playerId");
@@ -184,12 +184,7 @@
           }
 
           if (data.isDead) {
-            deadMsg.classList.remove("hidden");
-            suicideBtn.classList.add("hidden");
-          }
-
-          if (data.isInfected) {
-            infectedMsg.classList.remove("hidden");
+            showRole(data.role, data.isInfected, true);
           }
         });
       }
@@ -236,31 +231,41 @@
 
     function showRole(role, infected, dead) {
       roleBox.classList.remove("hidden");
-      myRoleDiv.textContent = role;
-      if (infected) infectedMsg.classList.remove("hidden");
-      if (dead) deadMsg.classList.remove("hidden");
-    }
 
-    leaveBtn.addEventListener("click", async () => {
-      if (roomCode && playerId) {
-        await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
-        localStorage.clear();
-        window.location.href = "index.html";
+      if (dead) {
+        roleBox.innerHTML = `
+          <div id="skull">💀</div>
+          <p id="death-text">لقد تم قتلك!</p>
+          <button id="exit-btn" class="danger">الخروج من اللعبة</button>
+        `;
+
+        document.getElementById("exit-btn").addEventListener("click", async () => {
+          await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
+          localStorage.clear();
+          window.location.href = "index.html";
+        });
+
+        return;
       }
-    });
 
-    suicideBtn.addEventListener("click", async () => {
-      if (roomCode && playerId) {
+      roleBox.innerHTML = `
+        <h3>دورك:</h3>
+        <div id="my-role">${role}</div>
+        <div id="infected-msg" class="${infected ? "" : "hidden"}">لقد أصبحت مستذئبًا!</div>
+        <button id="suicide-btn" class="danger">انتحار</button>
+      `;
+
+      document.getElementById("suicide-btn").addEventListener("click", async () => {
         await update(ref(db, `rooms/${roomCode}/players/${playerId}`), {
           isDead: true
         });
-        deadMsg.classList.remove("hidden");
-        suicideBtn.classList.add("hidden");
-        setTimeout(() => {
-          localStorage.clear();
-          window.location.href = "index.html";
-        }, 2000);
-      }
+      });
+    }
+
+    leaveBtn.addEventListener("click", async () => {
+      await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
+      localStorage.clear();
+      window.location.href = "index.html";
     });
 
     checkPlayerStatus();
