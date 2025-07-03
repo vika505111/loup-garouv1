@@ -42,27 +42,32 @@
         }
 
         Object.entries(data).forEach(([id, player]) => {
-          const card = document.createElement("div");
-          card.className = "player-card";
+  const card = document.createElement("div");
+  card.className = "player-card";
 
-          const isDead = player.isDead;
+  const isDead = player.isDead;
 
-          card.style.backgroundColor = isDead ? "#444" : "#111";
-          card.style.opacity = isDead ? "0.6" : "1";
+  card.style.backgroundColor = isDead ? "#444" : "#111";
+  card.style.opacity = isDead ? "0.6" : "1";
 
-          card.innerHTML = `
-            <h3>${player.name}</h3>
-            <p>الدور: <strong>${player.role || "غير معروف"}</strong></p>
-            <p>مقتول؟ <strong>${isDead ? "نعم" : "لا"}</strong></p>
-            <p>مستذئب؟ <strong>${player.isInfected ? "نعم" : "لا"}</strong></p>
-            <div class="actions">
-              <button ${isDead ? "disabled" : ""} onclick="killPlayer('${id}')">قتل</button>
-              <button ${isDead ? "disabled" : ""} onclick="infectPlayer('${id}')">تحويل</button>
-            </div>
-          `;
-          playerList.appendChild(card);
-        });
-      });
+  card.innerHTML = isDead
+    ? `
+      <div style="text-align:center; font-size:60px; color:#aaa;">💀</div>
+      <p style="text-align:center; font-size:18px; color:#bbb;">${player.name}</p>
+    `
+    : `
+      <h3>${player.name}</h3>
+      <p>الدور: <strong>${player.role || "غير معروف"}</strong></p>
+      <p>مقتول؟ <strong>لا</strong></p>
+      <p>مستذئب؟ <strong>${player.isInfected ? "نعم" : "لا"}</strong></p>
+      <div class="actions">
+        <button onclick="killPlayer('${id}')">قتل</button>
+        <button onclick="infectPlayer('${id}')">تحويل</button>
+      </div>
+    `;
+
+  playerList.appendChild(card);
+});
 
       document.getElementById("exit-btn").addEventListener("click", async () => {
         await remove(ref(db, "rooms/" + roomCode));
@@ -73,12 +78,12 @@
 
     // ✅ هذه يجب أن تكون خارج DOMContentLoaded
     window.killPlayer = (id) => {
-      update(ref(getDatabase(), `rooms/${roomCode}/players/${id}`), { isDead: true });
-    };
+  update(ref(db, `rooms/${roomCode}/players/${id}`), { isDead: true });
+};
 
-    window.infectPlayer = (id) => {
-      update(ref(getDatabase(), `rooms/${roomCode}/players/${id}`), { isInfected: true });
-    };
+window.infectPlayer = (id) => {
+  update(ref(db, `rooms/${roomCode}/players/${id}`), { isInfected: true });
+};
   </script>
 
   <style>
