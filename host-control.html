@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Loup-Garou Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBC7slGCHoJ2AAxfuaLPMawrd6woysaLw4",
+      authDomain: "loup-garou-v1001.firebaseapp.com",
+      databaseURL: "https://loup-garou-v1001-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "loup-garou-v1001",
+      storageBucket: "loup-garou-v1001.appspot.com",
+      messagingSenderId: "889495954871",
+      appId: "1:889495954871:web:b1a78c457923fd7772b432"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    let roomCode = localStorage.getItem("roomCode");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const playerList = document.getElementById("players");
+
+      if (!roomCode) {
+        playerList.innerHTML = "<p style='color:crimson;'>لا يوجد كود غرفة محفوظ. افتح صفحة الراوي أولاً.</p>";
+        return;
+      }
+
+      const roomRef = ref(db, "rooms/" + roomCode + "/players");
+
+      onValue(roomRef, (snapshot) => {
+        const data = snapshot.val();
+        playerList.innerHTML = "";
+
+        if (!data) {
+          playerList.innerHTML = "<p style='color:#aaa;'>لا يوجد لاعبون في هذه الغرفة.</p>";
+          return;
+        }
+
+        Object.entries(data).forEach(([id, player]) => {
+          const card = document.createElement("div");
+          card.className = "player-card";
+          card.innerHTML = `
+            <h3>${player.name}</h3>
+            <p>الدور: <strong>${player.role || "غير معروف"}</strong></p>
+            <p>مقتول؟ <strong>${player.isDead ? "نعم" : "لا"}</strong></p>
+            <p>مستذئب؟ <strong>${player.isInfected ? "نعم" : "لا"}</strong></p>
+            <div class="actions">
+              <button onclick="killPlayer('${id}')">قتل</button>
+              <button onclick="infectPlayer('${id}')">تحويل</button>
+            </div>
+          `;
+          playerList.appendChild(card);
+        });
+      });
+
+      window.killPlayer = (id) => {
+        update(ref(db, `rooms/${roomCode}/players/${id}`), { isDead: true });
+      };
+
+      window.infectPlayer = (id) => {
+        update(ref(db, `rooms/${roomCode}/players/${id}`), { isInfected: true });
+      };
+
+      document.getElementById("exit-btn").addEventListener("click", async () => {
+        await remove(ref(db, "rooms/" + roomCode));
+        localStorage.removeItem("roomCode");
+        window.location.href = "index.html";
+      });
+    });
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 10px;
+      background-color: #000;
+      color: white;
+    }
+
+    h2 {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 26px;
+      color: crimson;
+      text-shadow: 0 0 8px red;
+    }
+
+    #players {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      padding-bottom: 100px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .player-card {
+      background-color: #111;
+      border: 1px solid crimson;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 12px rgba(255, 0, 0, 0.2);
+    }
+
+    .player-card h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #f2f2f2;
+    }
+
+    .player-card p {
+      margin: 5px 0;
+      font-size: 15px;
+      color: #ccc;
+    }
+
+    .player-card strong {
+      color: white;
+    }
+
+    .actions {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .actions button {
+      flex: 1;
+      padding: 10px;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      background-color: #2c2c2c;
+      transition: background-color 0.2s ease;
+    }
+
+    .actions button:hover {
+      background-color: crimson;
+    }
+
+    #exit-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 500px;
+      background-color: crimson;
+      color: white;
+      padding: 16px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      z-index: 999;
+      box-shadow: 0 0 20px rgba(255,0,0,0.3);
+      font-weight: bold;
+    }
+
+    #exit-btn:hover {
+      background-color: #a10000;
+    }
+  </style>
+</head>
+<body>
+  <h2>Loup-Garou - تحكم الراوي</h2>
+  <div id="players"></div>
+  <button id="exit-btn">إنهاء الجولة والخروج</button>
+</body>
+</html>
