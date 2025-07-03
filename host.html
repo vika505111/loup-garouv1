@@ -170,7 +170,13 @@
     const db = getDatabase(app);
 
     let roomCode = localStorage.getItem("roomCode");
-
+if (roomCode) {
+  const roomSnap = await get(ref(db, `rooms/${roomCode}`));
+  if (!roomSnap.exists()) {
+    localStorage.removeItem("roomCode");
+    location.reload(); // لإعادة تحميل الصفحة وإنشاء غرفة جديدة
+  }
+}
     if (!roomCode) {
       roomCode = Math.floor(100 + Math.random() * 900).toString();
       localStorage.setItem("roomCode", roomCode);
