@@ -22,61 +22,6 @@
     const db = getDatabase(app);
     let roomCode = localStorage.getItem("roomCode");
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const playerList = document.getElementById("players");
-
-      if (!roomCode) {
-        playerList.innerHTML = "<p style='color:crimson;'>لا يوجد كود غرفة محفوظ. افتح صفحة الراوي أولاً.</p>";
-        return;
-      }
-
-      const roomRef = ref(db, "rooms/" + roomCode + "/players");
-
-      onValue(roomRef, (snapshot) => {
-        const data = snapshot.val();
-        playerList.innerHTML = "";
-
-        if (!data) {
-          playerList.innerHTML = "<p style='color:#aaa;'>لا يوجد لاعبون في هذه الغرفة.</p>";
-          return;
-        }
-
-        Object.entries(data).forEach(([id, player]) => {
-  const card = document.createElement("div");
-  card.className = "player-card";
-
-  const isDead = player.isDead;
-
-  card.style.backgroundColor = isDead ? "#444" : "#111";
-  card.style.opacity = isDead ? "0.6" : "1";
-
-  card.innerHTML = isDead
-    ? `
-      <div style="text-align:center; font-size:60px; color:#aaa;">💀</div>
-      <p style="text-align:center; font-size:18px; color:#bbb;">${player.name}</p>
-    `
-    : `
-      <h3>${player.name}</h3>
-      <p>الدور: <strong>${player.role || "غير معروف"}</strong></p>
-      <p>مقتول؟ <strong>لا</strong></p>
-      <p>مستذئب؟ <strong>${player.isInfected ? "نعم" : "لا"}</strong></p>
-      <div class="actions">
-        <button onclick="killPlayer('${id}')">قتل</button>
-        <button onclick="infectPlayer('${id}')">تحويل</button>
-      </div>
-    `;
-
-  playerList.appendChild(card);
-});
-
-      document.getElementById("exit-btn").addEventListener("click", async () => {
-        await remove(ref(db, "rooms/" + roomCode));
-        localStorage.removeItem("roomCode");
-        window.location.href = "index.html";
-      });
-    });
-
-    // ✅ هذه يجب أن تكون خارج DOMContentLoaded
     window.killPlayer = (id) => {
   update(ref(db, `rooms/${roomCode}/players/${id}`), { isDead: true });
 };
@@ -84,6 +29,61 @@
 window.infectPlayer = (id) => {
   update(ref(db, `rooms/${roomCode}/players/${id}`), { isInfected: true });
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  const playerList = document.getElementById("players");
+
+  if (!roomCode) {
+    playerList.innerHTML = "<p style='color:crimson;'>لا يوجد كود غرفة محفوظ. افتح صفحة الراوي أولاً.</p>";
+    return;
+  }
+
+  const roomRef = ref(db, "rooms/" + roomCode + "/players");
+
+  onValue(roomRef, (snapshot) => {
+    const data = snapshot.val();
+    playerList.innerHTML = "";
+
+    if (!data) {
+      playerList.innerHTML = "<p style='color:#aaa;'>لا يوجد لاعبون في هذه الغرفة.</p>";
+      return;
+    }
+
+    Object.entries(data).forEach(([id, player]) => {
+      const card = document.createElement("div");
+      card.className = "player-card";
+
+      const isDead = player.isDead;
+
+      card.style.backgroundColor = isDead ? "#444" : "#111";
+      card.style.opacity = isDead ? "0.6" : "1";
+
+      card.innerHTML = isDead
+        ? `
+          <div style="text-align:center; font-size:60px; color:#aaa;">💀</div>
+          <p style="text-align:center; font-size:18px; color:#bbb;">${player.name}</p>
+        `
+        : `
+          <h3>${player.name}</h3>
+          <p>الدور: <strong>${player.role || "غير معروف"}</strong></p>
+          <p>مقتول؟ <strong>لا</strong></p>
+          <p>مستذئب؟ <strong>${player.isInfected ? "نعم" : "لا"}</strong></p>
+          <div class="actions">
+            <button onclick="killPlayer('${id}')">قتل</button>
+            <button onclick="infectPlayer('${id}')">تحويل</button>
+          </div>
+        `;
+
+      playerList.appendChild(card);
+    });
+  });
+
+  document.getElementById("exit-btn").addEventListener("click", async () => {
+    await remove(ref(db, "rooms/" + roomCode));
+    localStorage.removeItem("roomCode");
+    window.location.href = "index.html";
+  });
+});
   </script>
 
   <style>
