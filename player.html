@@ -221,18 +221,24 @@
     }
 
     function showRole(role) {
-      roleBox.innerHTML = `
-        <img id="role-image" src="${roleImage}" alt="${role}">
-        <div id="my-role">${role}</div>
-        <button id="hide-btn">إخفاء</button>
-        <button id="suicide-btn" class="danger">انتحار</button>
-      `;
+  get(ref(db, `rooms/${roomCode}/players/${playerId}`)).then((snap) => {
+    const data = snap.val();
+    const infectedMsg = data.isInfected ? '<div id="infected-msg">لقد أصبحت مستذئبًا!</div>' : '';
 
-      document.getElementById("hide-btn").onclick = showRevealButton;
-      document.getElementById("suicide-btn").onclick = async () => {
-        await update(ref(db, `rooms/${roomCode}/players/${playerId}`), { isDead: true });
-      };
-    }
+    roleBox.innerHTML = `
+      <img id="role-image" src="${roleImage}" alt="${role}">
+      <div id="my-role">${role}</div>
+      ${infectedMsg}
+      <button id="hide-btn">إخفاء</button>
+      <button id="suicide-btn" class="danger">انتحار</button>
+    `;
+
+    document.getElementById("hide-btn").onclick = showRevealButton;
+    document.getElementById("suicide-btn").onclick = async () => {
+      await update(ref(db, `rooms/${roomCode}/players/${playerId}`), { isDead: true });
+    };
+  });
+}
 
     function showDeathScreen() {
       roleBox.innerHTML = `
