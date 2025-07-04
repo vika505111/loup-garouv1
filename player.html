@@ -227,6 +227,21 @@
     };
   });
 }
+function showRevealButton() {
+  roleBox.classList.remove("hidden");
+
+  roleBox.innerHTML = `
+    <p id="my-role">دورك هو: ${currentRole}</p>
+    ${roleImage ? `<img id="role-image" src="${roleImage}" alt="Role Image">` : ""}
+    <button id="exit-btn" class="danger">الخروج من اللعبة</button>
+  `;
+
+  document.getElementById("exit-btn").onclick = async () => {
+    await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
+    localStorage.clear();
+    window.location.href = "index.html";
+  };
+}
 
     joinBtn.addEventListener("click", async () => {
       const name = nameInput.value.trim();
