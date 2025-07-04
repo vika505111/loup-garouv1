@@ -208,46 +208,25 @@
       }
     }
 
-    function showRevealButton() {
-      roleBox.classList.remove("hidden");
-      roleBox.innerHTML = `
-        <button id="reveal-btn">إظهار الدور</button>
-        <button id="suicide-btn" class="danger">انتحار</button>
-      `;
-
-      document.getElementById("reveal-btn").onclick = () => showRole(currentRole);
-      document.getElementById("suicide-btn").onclick = async () => {
-        await update(ref(db, `rooms/${roomCode}/players/${playerId}`), { isDead: true });
-      };
-    }
-
-    function showRole(role) {
-      roleBox.innerHTML = `
-        <img id="role-image" src="${roleImage}" alt="${role}">
-        <div id="my-role">${role}</div>
-        <button id="hide-btn">إخفاء</button>
-        <button id="suicide-btn" class="danger">انتحار</button>
-      `;
-
-      document.getElementById("hide-btn").onclick = showRevealButton;
-      document.getElementById("suicide-btn").onclick = async () => {
-        await update(ref(db, `rooms/${roomCode}/players/${playerId}`), { isDead: true });
-      };
-    }
-
     function showDeathScreen() {
-      roleBox.innerHTML = `
-        <div id="skull">💀</div>
-        <p id="death-text">لقد تم قتلك!</p>
-        <button id="exit-btn" class="danger">الخروج من اللعبة</button>
-      `;
+  get(ref(db, `rooms/${roomCode}/players/${playerId}`)).then((snap) => {
+    const data = snap.val();
+    const infectedMsg = data.isInfected ? '<div id="infected-msg">لقد أصبحت مستذئبًا!</div>' : '';
 
-      document.getElementById("exit-btn").onclick = async () => {
-        await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
-        localStorage.clear();
-        window.location.href = "index.html";
-      };
-    }
+    roleBox.innerHTML = `
+      <div id="skull">💀</div>
+      <p id="death-text">لقد تم قتلك!</p>
+      ${infectedMsg}
+      <button id="exit-btn" class="danger">الخروج من اللعبة</button>
+    `;
+
+    document.getElementById("exit-btn").onclick = async () => {
+      await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
+      localStorage.clear();
+      window.location.href = "index.html";
+    };
+  });
+}
 
     joinBtn.addEventListener("click", async () => {
       const name = nameInput.value.trim();
