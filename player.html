@@ -234,45 +234,30 @@
       };
     }
 
-    function showDeathScreen(isInfected) {
-      const infectedMsg = isInfected
-        ? '<div id="infected-msg">لقد أصبحت مستذئبًا!</div>'
-        : '';
-
-      roleBox.classList.remove("hidden");
-      roleBox.innerHTML = `
-        <div id="skull">💀</div>
-        <p id="death-text">لقد تم قتلك!</p>
-        ${infectedMsg}
-        <button id="exit-btn" class="danger">الخروج من اللعبة</button>
-      `;
-
-      document.getElementById("exit-btn").onclick = async () => {
-        await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
-        localStorage.clear();
-        window.location.href = "index.html";
-      };
-    }
-
     function showInfectedScreen() {
-      roleBox.classList.remove("hidden");
-      roleBox.innerHTML = `
-        <p id="my-role">لقد أصبحت مستذئبًا!</p>
-        <div style="position: relative; width: 100%; height: 250px; margin-top: 15px;">
-          ${roleImage ? `<img id="role-image" src="${roleImage}" alt="Role Image">` : ""}
-          <img src="https://i.postimg.cc/QdMJg7Tk/1000010916-removebg-preview.png"
-               alt="Claw Marks"
-               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
-        </div>
-        <button id="exit-btn" class="danger">الخروج من اللعبة</button>
-      `;
+  roleBox.classList.remove("hidden");
+  roleBox.innerHTML = `
+    <p id="my-role">لقد أصبحت مستذئبًا!</p>
+    <div style="position: relative; width: 100%; height: 250px; margin-top: 15px;">
+      ${roleImage ? `<img id="role-image" src="${roleImage}" alt="Role Image">` : ""}
+      <img src="https://i.postimg.cc/QdMJg7Tk/1000010916-removebg-preview.png"
+           alt="Claw Marks"
+           style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none;" />
+    </div>
+    <button id="hide-role-btn">إخفاء البطاقة</button>
+    <button id="exit-btn" class="danger">الخروج من اللعبة</button>
+  `;
 
-      document.getElementById("exit-btn").onclick = async () => {
-        await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
-        localStorage.clear();
-        window.location.href = "index.html";
-      };
-    }
+  document.getElementById("hide-role-btn").onclick = () => {
+    showRevealButton();
+  };
+
+  document.getElementById("exit-btn").onclick = async () => {
+    await remove(ref(db, `rooms/${roomCode}/players/${playerId}`));
+    localStorage.clear();
+    window.location.href = "index.html";
+  };
+}
 
     joinBtn.addEventListener("click", async () => {
       const name = nameInput.value.trim();
